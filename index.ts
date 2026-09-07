@@ -41,6 +41,8 @@ import {
 } from './src/routes/monitor';
 import { statusHealthHandler } from './src/routes/health';
 import { submitFeedbackHandler } from './src/routes/feedback';
+import { premiumRouter } from './src/premium/premiumProxy';
+import { dashboardRouter } from './src/premium/dashboardRouter';
 
 const app = express();
 /*
@@ -228,6 +230,24 @@ app.get('/api/monitor/debug', monitorDebugHandler);
 app.get('/api/status/health', statusHealthHandler);
 app.post('/api/feedback', submitFeedbackHandler);
 
+/*
+ * Kairoo Premium — Developer Tools. Dipasang sebagai router terpisah,
+ * TIDAK menyentuh app.use(rateLimit)/loadRouter di atas. Endpoint lama
+ * /api/... tanpa API Key tetap berjalan persis seperti sebelumnya -
+ * /premium/* murni tambahan baru (lihat src/premium/premiumProxy.ts).
+ */
+app.use('/premium', premiumRouter);
+app.use('/api/premium', dashboardRouter);
+
+// Aset statis dashboard (premium.js, premium.css, premium-auth.js) DIBERI
+// PATH TERPISAH dari proxy /premium di atas, supaya tidak pernah bentrok
+// dengan pola /premium/:endpointName/:category/:filename.
+app.use('/premium-assets', express.static(path.join(publicDir, 'premium')));
+
+app.get('/premium', (req: Request, res: Response) => {
+    return res.sendFile(path.join(publicDir, 'premium', 'premium.html'));
+});
+
 app.get('/monitor', (req: Request, res: Response) => {
     return res.sendFile(path.join(publicDir, 'monitor', 'monitor.html'));
 });
@@ -301,6 +321,13 @@ app.get('/config', (req: Request, res: Response) => {
         return res.json({
             creator: config.settings.creator,
             ...config,
+            // Hanya URL project & anon/public key — AMAN diekspos ke browser.
+            // SUPABASE_SERVICE_ROLE_KEY TIDAK PERNAH dikirim di sini atau di
+            // response mana pun (lihat src/premium/supabaseAdmin.ts).
+            premium: {
+                supabase_url: process.env.SUPABASE_URL || null,
+                supabase_anon_key: process.env.SUPABASE_ANON_KEY || null
+            },
             runtime: {
                 // Data nyata dari proses berjalan, bukan angka dikarang -
                 // dipakai kartu "API Information" di dashboard.
