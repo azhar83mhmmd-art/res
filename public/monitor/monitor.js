@@ -208,7 +208,7 @@
             if (i === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
         });
-        ctx.strokeStyle = '#8B5CF6';
+        ctx.strokeStyle = '#8E7CF5';
         ctx.lineWidth = 2.5;
         ctx.lineJoin = 'round';
         ctx.stroke();
