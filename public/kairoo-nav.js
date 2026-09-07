@@ -20,6 +20,7 @@
         { href: '/logs', label: 'Live Request Logs', key: 'logs', icon: 'M13 2L3 14h7l-1 8 10-12h-7l1-8z' },
         { href: '/status', label: 'Status Server Realtime', key: 'status', icon: 'M3 3v18h18M7 15l3-4 3 3 5-7' },
         { href: '/feedback', label: 'Pusat Feedback & Laporan', key: 'feedback', icon: 'M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z' },
+        { href: '/premium', label: 'Akun & Langganan', key: 'premium', icon: 'M12 2l2.4 7.2H22l-6 4.6 2.3 7.2L12 16.4l-6.3 4.6L8 13.8 2 9.2h7.6L12 2z' },
         { href: '/about', label: 'Tentang Kami', key: 'about', icon: 'M12 16v-4M12 8h.01M22 12a10 10 0 11-20 0 10 10 0 0120 0z' }
     ];
 
