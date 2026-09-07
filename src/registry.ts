@@ -33,10 +33,13 @@ import configJson from './config.json';
 
 import aiEndpoints from './endpoints/ai.json';
 import downloadEndpoints from './endpoints/download.json';
+import infoEndpoints from './endpoints/info.json';
 import makerEndpoints from './endpoints/maker.json';
+import musicEndpoints from './endpoints/music.json';
 import randomEndpoints from './endpoints/random.json';
 import searchEndpoints from './endpoints/search.json';
 import toolsEndpoints from './endpoints/tools.json';
+import uploadEndpoints from './endpoints/upload.json';
 
 import kuronekoHandler from '../router/ai/kuroneko';
 import asyntaiHandler from '../router/ai/asyntai';
@@ -47,6 +50,12 @@ import ocrHandler from '../router/ai/ocr';
 
 import facebookHandler from '../router/download/facebook';
 import aioHandler from '../router/download/aio';
+import instagramHandler from '../router/download/instagram';
+import tiktokHandler from '../router/download/tiktok';
+import pinterestImageHandler from '../router/download/pinterest-image';
+import pinterestVideoHandler from '../router/download/pinterest-video';
+import githubDownloadHandler from '../router/download/github';
+import npmDownloadHandler from '../router/download/npm';
 
 import bratHandler from '../router/maker/brat';
 import brat3Handler from '../router/maker/brat3';
@@ -65,6 +74,9 @@ import igqcHandler from '../router/maker/igqc';
 import igstoryHandler from '../router/maker/igstory';
 import kalenderHandler from '../router/maker/kalender';
 import newscanvasHandler from '../router/maker/newscanvas';
+import qrcodeHandler from '../router/maker/qrcode';
+import carbonHandler from '../router/maker/carbon';
+import strukHandler from '../router/maker/struk';
 
 import blueArchiveHandler from '../router/random/blue_archive';
 
@@ -88,6 +100,40 @@ import nikcheckHandler from '../router/tools/nikcheck';
 import screenshotHandler from '../router/tools/screenshot';
 import webfetchHandler from '../router/tools/webfetch';
 import removebgHandler from '../router/tools/removebg';
+import stalkffHandler from '../router/tools/stalkff';
+import stalkmlHandler from '../router/tools/stalkml';
+import stalkigHandler from '../router/tools/stalkig';
+import ttsHandler from '../router/tools/tts';
+import ttsvoicesHandler from '../router/tools/ttsvoices';
+import murotalreciterHandler from '../router/tools/murotalreciter';
+import murotalsurahHandler from '../router/tools/murotalsurah';
+import ttsGoogleHandler from '../router/tools/ttsgoogle';
+import upscaleVideoHandler from '../router/tools/upscalevideo';
+import shortlinkHandler from '../router/tools/shortlink';
+import audio2textHandler from '../router/tools/audio2text';
+import currencyHandler from '../router/tools/currency';
+
+import playmusicHandler from '../router/music/playmusic';
+import vocalremoverHandler from '../router/music/vocalremover';
+
+import shinigamidetailHandler from '../router/info/shinigamidetail';
+import shinigamiReadHandler from '../router/info/shinigamiread';
+
+import unggahHandler from '../router/upload/unggah';
+import aceimgHandler from '../router/upload/aceimg';
+import filekiwiHandler from '../router/upload/filekiwi';
+import shzHandler from '../router/upload/shz';
+import kappaHandler from '../router/upload/kappa';
+import uploadeeHandler from '../router/upload/uploadee';
+import poneHandler from '../router/upload/pone';
+import leopardHandler from '../router/upload/leopard';
+import catboxHandler from '../router/upload/catbox';
+import uguuHandler from '../router/upload/uguu';
+import top4topHandler from '../router/upload/top4top';
+import litterboxHandler from '../router/upload/litterbox';
+import krakenfilesHandler from '../router/upload/krakenfiles';
+import upload8Handler from '../router/upload/upload8';
+import tmpfilesHandler from '../router/upload/tmpfiles';
 
 export type RouteHandler = (
     req: Request,
@@ -113,7 +159,13 @@ export const routerRegistry: Record<string, Record<string, RouteHandler>> = {
     },
     download: {
         facebook: facebookHandler,
-        aio: aioHandler
+        aio: aioHandler,
+        instagram: instagramHandler,
+        tiktok: tiktokHandler,
+        'pinterest-image': pinterestImageHandler,
+        'pinterest-video': pinterestVideoHandler,
+        github: githubDownloadHandler,
+        npm: npmDownloadHandler
     },
     maker: {
         brat: bratHandler,
@@ -132,7 +184,10 @@ export const routerRegistry: Record<string, Record<string, RouteHandler>> = {
         igqc: igqcHandler,
         igstory: igstoryHandler,
         kalender: kalenderHandler,
-        newscanvas: newscanvasHandler
+        newscanvas: newscanvasHandler,
+        qrcode: qrcodeHandler,
+        carbon: carbonHandler,
+        struk: strukHandler
     },
     random: {
         blue_archive: blueArchiveHandler
@@ -158,17 +213,57 @@ export const routerRegistry: Record<string, Record<string, RouteHandler>> = {
         nikcheck: nikcheckHandler,
         screenshot: screenshotHandler,
         webfetch: webfetchHandler,
-        removebg: removebgHandler
+        removebg: removebgHandler,
+        stalkff: stalkffHandler,
+        stalkml: stalkmlHandler,
+        stalkig: stalkigHandler,
+        tts: ttsHandler,
+        ttsvoices: ttsvoicesHandler,
+        murotalreciter: murotalreciterHandler,
+        murotalsurah: murotalsurahHandler,
+        ttsgoogle: ttsGoogleHandler,
+        upscalevideo: upscaleVideoHandler,
+        shortlink: shortlinkHandler,
+        audio2text: audio2textHandler,
+        currency: currencyHandler
+    },
+    music: {
+        playmusic: playmusicHandler,
+        vocalremover: vocalremoverHandler
+    },
+    info: {
+        shinigamidetail: shinigamidetailHandler,
+        shinigamiread: shinigamiReadHandler
+    },
+    upload: {
+        unggah: unggahHandler,
+        aceimg: aceimgHandler,
+        filekiwi: filekiwiHandler,
+        shz: shzHandler,
+        kappa: kappaHandler,
+        uploadee: uploadeeHandler,
+        pone: poneHandler,
+        leopard: leopardHandler,
+        catbox: catboxHandler,
+        uguu: uguuHandler,
+        top4top: top4topHandler,
+        litterbox: litterboxHandler,
+        krakenfiles: krakenfilesHandler,
+        upload8: upload8Handler,
+        tmpfiles: tmpfilesHandler
     }
 };
 
 export const endpointsRegistry: Record<string, any[]> = {
     ai: aiEndpoints as any[],
     download: downloadEndpoints as any[],
+    info: infoEndpoints as any[],
     maker: makerEndpoints as any[],
+    music: musicEndpoints as any[],
     random: randomEndpoints as any[],
     search: searchEndpoints as any[],
-    tools: toolsEndpoints as any[]
+    tools: toolsEndpoints as any[],
+    upload: uploadEndpoints as any[]
 };
 
 export const baseConfig: any = configJson;
