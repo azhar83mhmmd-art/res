@@ -540,7 +540,7 @@ function renderIntro(config) {
 
         <p
             class="text-sm leading-relaxed font-semibold mb-6"
-            style="color:#8A8A8A"
+            style="color:#6E7591"
         >
             Welcome to the ${apiName} documentation.
             Open the menu in the top-left corner to browse
@@ -672,7 +672,7 @@ function buildSidebarTree(tags) {
     introBtn.innerHTML = `
         <div
             class="folder-icon"
-            style="background:linear-gradient(135deg,#8B5CF6,#7c4cf0)"
+            style="background:linear-gradient(135deg,#8E7CF5,#5EC2E0)"
         >
             <i class="fa-solid fa-house"></i>
         </div>
@@ -817,6 +817,34 @@ function selectEndpoint(id) {
     ev.classList.add("flex");
 
     closeSidebar();
+    scrollToEndpointView();
+}
+
+/*
+ * FIX: sebelum ini, begitu endpoint dipilih dari sidebar, form
+ * endpoint langsung ditampilkan tapi posisi scroll halaman TIDAK
+ * ikut berpindah. Di layar sempit (mobile/tablet) kartu terminal +
+ * info (waktu/baterai/device) itu satu kolom penuh yang ditumpuk DI
+ * ATAS form endpoint (grid 2 kolom cuma aktif di breakpoint `lg`),
+ * jadi orang yang baru pilih endpoint tetap melihat terminal seperti
+ * semula dan harus geser manual ke bawah untuk sadar formnya sudah
+ * muncul - banyak yang tidak tahu harus geser. Sekarang begitu
+ * endpoint dipilih, halaman otomatis di-scroll ke form itu, dengan
+ * jarak dari atas layar (SCROLL_OFFSET) supaya form tidak ketutupan
+ * header sticky di bagian atas.
+ */
+const SCROLL_OFFSET = 96;
+
+function scrollToEndpointView() {
+    requestAnimationFrame(() => {
+        const ev = document.getElementById("endpoint-view");
+
+        if (!ev) return;
+
+        const top = ev.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
+
+        window.scrollTo({ top, behavior: "smooth" });
+    });
 }
 
 window.backToIntro = () => {
@@ -867,12 +895,12 @@ function renderEndpointCard(route, id) {
                             <div>
                                 <label
                                     class="text-[11px] font-bold mb-1.5 block"
-                                    style="color:#8A8A8A"
+                                    style="color:#6E7591"
                                 >
                                     ${param.name}
                                     ${
                                         param.required
-                                            ? '<span style="color:#F0555F">*</span>'
+                                            ? '<span style="color:#E2727E">*</span>'
                                             : ""
                                     }
                                 </label>
@@ -916,7 +944,7 @@ function renderEndpointCard(route, id) {
             <div class="p-5">
                 <div
                     class="flex items-center gap-2 mb-3 text-[11px] font-bold"
-                    style="color:#8B5CF6"
+                    style="color:#8E7CF5"
                 >
                     <i class="fa-solid fa-folder text-[10px]"></i>
                     <span>${route.cat}</span>
@@ -949,7 +977,7 @@ function renderEndpointCard(route, id) {
 
             <div
                 class="px-5 pb-5 flex gap-3 items-center border-t pt-4"
-                style="border-color:#222222"
+                style="border-color:rgba(163,177,198,.3)"
             >
                 <button
                     id="btn-exec-${id}"
