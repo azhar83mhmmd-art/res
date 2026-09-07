@@ -69,14 +69,14 @@ function renderConfig(config) {
 
 function renderMonitorStats(data) {
     if (!data || data.status === 'unavailable') {
-        setApiStatus('warn', 'API Status: Online (monitor belum dikonfigurasi)');
+        setApiStatus('live', 'API Status: Online');
         document.getElementById('stat-total-requests').textContent = 'N/A';
         document.getElementById('stat-response-time').textContent = 'N/A';
         return;
     }
 
     if (data.status === 'offline') {
-        setApiStatus('warn', 'API Status: Online (statistik tidak tersedia)');
+        setApiStatus('live', 'API Status: Online');
         document.getElementById('stat-total-requests').textContent = 'N/A';
         document.getElementById('stat-response-time').textContent = 'N/A';
         return;
