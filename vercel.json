@@ -5,7 +5,7 @@
   "functions": {
     "api/index.js": {
       "includeFiles": "{dist/**,node_modules/@napi-rs/canvas*/**}",
-      "maxDuration": 30,
+      "maxDuration": 20,
       "memory": 1024
     }
   },
