@@ -1,24 +1,12 @@
 const POLL_INTERVAL_MS = 12000;
+const STATS_POLL_INTERVAL_MS = 5000;
 let lastUpdatedAt = null;
-let pollTimer = null;
 
 const STATUS_LABEL = {
     operational: 'Operational',
     degraded: 'Degraded',
     down: 'Down',
     unavailable: 'Unavailable'
-};
-
-const COMPONENT_ICONS = {
-    api: 'M13 2L3 14h7l-1 8 10-12h-7l1-8z',
-    database: 'M4 6c0-1.66 3.58-3 8-3s8 1.34 8 3-3.58 3-8 3-8-1.34-8-3zM4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6',
-    endpointSystem: 'M4 5.5C4 4.67 4.67 4 5.5 4H12v16H5.5A1.5 1.5 0 014 18.5v-13zM20 5.5c0-.83-.67-1.5-1.5-1.5H12v16h6.5a1.5 1.5 0 001.5-1.5v-13z'
-};
-
-const COMPONENT_LABEL = {
-    api: 'API',
-    database: 'Database',
-    endpointSystem: 'Endpoint System'
 };
 
 function icon(d) {
@@ -37,47 +25,46 @@ function setLiveBadge(ok) {
     }
 }
 
+const OVERALL_ICON_CLASS = {
+    operational: 'live',
+    degraded: 'warn',
+    down: 'offline',
+    unavailable: 'warn'
+};
+
 function renderOverall(data) {
-    const dot = document.getElementById('overall-dot');
+    const iconTile = document.getElementById('overall-icon');
     const title = document.getElementById('overall-title');
     const sub = document.getElementById('overall-sub');
 
     const status = data.status;
-    dot.className = 'k-status-big-dot ' + status;
+    iconTile.className = 'k-component-icon-tile ' + (OVERALL_ICON_CLASS[status] || 'offline');
     title.textContent = 'System ' + (STATUS_LABEL[status] || 'Unknown');
     sub.textContent = 'Terakhir diperiksa: ' + new Date(data.checkedAt).toLocaleTimeString('id-ID');
 }
 
-function renderComponents(components) {
-    const grid = document.getElementById('components-grid');
-    grid.innerHTML = '';
+function renderEndpointSystem(comp) {
+    const badgeClass = comp.status === 'operational' ? 'live' : (comp.status === 'unavailable' ? 'warn' : 'offline');
 
-    Object.keys(components).forEach((key) => {
-        const comp = components[key];
-        const card = document.createElement('div');
-        card.className = 'k-card k-component-card';
-
-        const badgeClass = comp.status === 'operational' ? 'live' : (comp.status === 'unavailable' ? 'warn' : 'offline');
-
-        card.innerHTML =
-            '<div class="k-component-head">' +
-                '<span class="k-stat-label">' + icon(COMPONENT_ICONS[key] || COMPONENT_ICONS.api) + (COMPONENT_LABEL[key] || key) + '</span>' +
-                '<span class="k-badge ' + badgeClass + '"><span class="k-dot"></span>' + (STATUS_LABEL[comp.status] || comp.status) + '</span>' +
-            '</div>' +
-            '<div class="k-component-msg">' + (comp.message || '') + '</div>' +
-            '<div class="k-component-meta">' + (comp.responseTime !== null && comp.responseTime !== undefined ? comp.responseTime + 'ms' : (comp.totalEndpoints !== undefined ? comp.totalEndpoints + ' endpoint' : '')) + '</div>';
-
-        grid.appendChild(card);
-    });
+    document.getElementById('endpoint-icon').className = 'k-component-icon-tile ' + badgeClass;
+    document.getElementById('endpoint-value').className = 'k-component-value ' + badgeClass;
+    document.getElementById('endpoint-value').textContent = STATUS_LABEL[comp.status] || comp.status;
+    document.getElementById('endpoint-msg').textContent = comp.message || '';
 }
 
-function renderTerminal(data) {
-    const lines = ['api        ' + data.components.api.status];
-    lines.push('database   ' + data.components.database.status);
-    lines.push('endpoints  ' + data.components.endpointSystem.status + ' (' + data.components.endpointSystem.totalEndpoints + ')');
-    lines.push('checked    ' + data.checkedAt);
+function renderTerminal(health, stats) {
+    const lines = ['api          ' + health.components.api.status];
+    lines.push('endpoints    ' + health.components.endpointSystem.status + ' (' + health.components.endpointSystem.totalEndpoints + ')');
+    if (stats && stats.status) {
+        lines.push('uptime       ' + stats.server.uptime);
+        lines.push('memory       ' + stats.server.memory.used + ' / ' + stats.server.memory.total + ' (' + stats.server.memory.percent + '%)');
+    }
+    lines.push('checked      ' + health.checkedAt);
     document.getElementById('terminal-log').textContent = lines.join('\n');
 }
+
+let lastHealth = null;
+let lastStats = null;
 
 async function loadHealth() {
     try {
@@ -87,20 +74,71 @@ async function loadHealth() {
 
         setLiveBadge(true);
         renderOverall(data);
-        renderComponents(data.components);
-        renderTerminal(data);
+        renderEndpointSystem(data.components.endpointSystem);
+        lastHealth = data;
+        renderTerminal(lastHealth, lastStats);
         lastUpdatedAt = Date.now();
     } catch (e) {
         setLiveBadge(false);
         document.getElementById('overall-title').textContent = 'Unable to load data';
         document.getElementById('overall-sub').textContent = 'Tidak dapat memeriksa status server saat ini.';
-        document.getElementById('overall-dot').className = 'k-status-big-dot down';
+        document.getElementById('overall-icon').className = 'k-component-icon-tile offline';
+    }
+}
+
+function barClassFromPercent(pct) {
+    if (pct > 90) return 'offline';
+    if (pct > 70) return 'warn';
+    return 'live';
+}
+
+async function loadResources() {
+    try {
+        const res = await fetch('/stats/data', { headers: { accept: 'application/json' } });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (!data.status) throw new Error('Data tidak valid');
+
+        const s = data.server;
+
+        document.getElementById('stat-uptime').textContent = s.uptime;
+        document.getElementById('stat-platform').textContent = s.hostname || s.platform;
+        document.getElementById('stat-arch').textContent = s.arch;
+        document.getElementById('stat-node').textContent = s.node_version;
+
+        const cpuPercent = (parseFloat(s.cpu.load) * 10).toFixed(1);
+        document.getElementById('stat-cpu-load').textContent = cpuPercent + '%';
+        document.getElementById('stat-cpu-model').textContent = s.cpu.model + ' (' + s.cpu.cores + ' Cores)';
+
+        document.getElementById('mem-used').textContent = s.memory.used;
+        document.getElementById('mem-total').textContent = s.memory.total;
+        document.getElementById('mem-free').textContent = s.memory.free;
+
+        const memBar = document.getElementById('mem-bar');
+        const memClass = barClassFromPercent(s.memory.percent);
+        memBar.className = 'k-component-bar-fill ' + memClass;
+        memBar.style.width = s.memory.percent + '%';
+        document.getElementById('mem-percent').textContent = s.memory.percent + '%';
+
+        lastStats = data;
+        if (lastHealth) renderTerminal(lastHealth, lastStats);
+    } catch (e) {
+        document.getElementById('stat-uptime').textContent = 'N/A';
+        document.getElementById('stat-platform').textContent = 'N/A';
+        document.getElementById('stat-cpu-load').textContent = 'N/A';
+        document.getElementById('stat-cpu-model').textContent = 'Tidak dapat memuat data resource.';
     }
 }
 
 loadHealth();
-pollTimer = setInterval(loadHealth, POLL_INTERVAL_MS);
+loadResources();
+
+setInterval(loadHealth, POLL_INTERVAL_MS);
+setInterval(loadResources, STATS_POLL_INTERVAL_MS);
 
 document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') loadHealth();
+    if (document.visibilityState === 'visible') {
+        loadHealth();
+        loadResources();
+    }
 });
